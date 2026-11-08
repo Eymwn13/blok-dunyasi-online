@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="tr">
 <head>
@@ -6,24 +7,54 @@
 <meta name="theme-color" content="#101820">
 <title>Blok Dünyası 3D</title>
 <style>
-*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#101820;font-family:system-ui,Arial;color:#fff;touch-action:none}
-#game{position:fixed;inset:0}canvas{display:block}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#101820;font-family:system-ui,Arial;color:#fff;touch-action:none}
+#game{position:fixed;inset:0}
+canvas{display:block}
 #hud{position:fixed;inset:0;pointer-events:none}
 .top{position:absolute;top:10px;left:12px;right:12px;display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
 .panel{background:#101820b8;border:1px solid #ffffff30;border-radius:12px;padding:8px 12px;backdrop-filter:blur(8px);font-size:13px;text-shadow:0 1px 2px #000}
 #status{font-weight:700;color:#d9f99d}
 #onlinePanel input,#onlinePanel select,#chatBox input{font-family:inherit}
-@media(orientation:landscape) and (max-height:500px){#onlinePanel{top:55px;max-width:510px;padding:5px}#chatBox{bottom:58px;width:230px}#chatLog{height:40px!important}}
+@media(orientation:landscape) and (max-height:500px){
+#onlinePanel{top:55px;max-width:510px;padding:5px}
+#chatBox{bottom:58px;width:230px}
+#chatLog{height:40px!important}
+}
 #crosshair{position:absolute;left:50%;top:50%;width:18px;height:18px;transform:translate(-50%,-50%);opacity:.9}
 #crosshair:before,#crosshair:after{content:"";position:absolute;background:white;box-shadow:0 0 3px #000}
-#crosshair:before{width:2px;height:18px;left:8px}#crosshair:after{height:2px;width:18px;top:8px}
+#crosshair:before{width:2px;height:18px;left:8px}
+#crosshair:after{height:2px;width:18px;top:8px}
+
+/* PANEL GİZLEME */
+#panelToggle{
+position:fixed;left:0;top:50%;transform:translateY(-50%);
+z-index:9999;width:32px;height:58px;
+border:1px solid #ffffff80;border-left:0;
+border-radius:0 10px 10px 0;
+background:#17212dee;color:white;
+font-size:20px;font-weight:900;
+pointer-events:auto;touch-action:manipulation
+}
+#onlinePanel,#chatBox{
+transition:transform .25s ease,opacity .25s ease;
+}
+body.panels-hidden #onlinePanel,
+body.panels-hidden #chatBox{
+transform:translateX(calc(-100% - 20px));
+opacity:0;
+pointer-events:none!important;
+}
+
 #controls{position:absolute;inset:0}
 #joy{position:absolute;left:22px;bottom:24px;width:128px;height:128px;border-radius:50%;background:#ffffff20;border:2px solid #ffffff65;pointer-events:auto}
 #stick{position:absolute;left:38px;top:38px;width:48px;height:48px;border-radius:50%;background:#ffffffa8;border:2px solid white;box-shadow:0 3px 10px #0008}
 .actions{position:absolute;right:16px;bottom:22px;display:grid;grid-template-columns:repeat(2,64px);gap:10px;pointer-events:auto}
 .btn{width:64px;height:58px;border:1px solid #ffffff80;border-radius:14px;background:#17212dcc;color:white;font-size:12px;font-weight:800;box-shadow:0 3px 10px #0007;touch-action:none}
 .btn:active{background:#4b6b42}
-#jump{grid-column:2;grid-row:1}#break{grid-column:1;grid-row:2}#place{grid-column:2;grid-row:2}
+#jump{grid-column:2;grid-row:1}
+#break{grid-column:1;grid-row:2}
+#place{grid-column:2;grid-row:2}
 #lookHint{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:11px;color:#ffffff9c;text-align:center;pointer-events:none}
 #hotbar{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);display:flex;gap:5px;pointer-events:auto;max-width:70vw;overflow-x:auto;padding:4px}
 .slot{width:48px;height:48px;flex:0 0 48px;border:2px solid #ffffff70;border-radius:8px;background:#17212dcc;display:grid;place-items:center;font-size:22px;position:relative}
@@ -33,243 +64,725 @@
 .slot.selected{border:3px solid #facc15;background:#ffffff40}
 #menu{position:fixed;inset:0;background:linear-gradient(#101820d9,#101820f2);display:flex;align-items:center;justify-content:center;z-index:5;padding:20px}
 .card{width:min(440px,94vw);background:#1c2934;border:1px solid #ffffff30;border-radius:20px;padding:24px;text-align:center;box-shadow:0 20px 60px #0009}
-.card h1{margin:0 0 8px;font-size:28px}.card p{color:#cbd5e1;line-height:1.5;font-size:14px}
+.card h1{margin:0 0 8px;font-size:28px}
+.card p{color:#cbd5e1;line-height:1.5;font-size:14px}
 .primary{border:0;border-radius:12px;padding:14px 24px;background:#84cc16;color:#14210b;font-weight:900;font-size:16px;width:100%;margin-top:10px}
 #rotate{display:none;position:fixed;inset:0;background:#101820;color:white;z-index:10;align-items:center;justify-content:center;text-align:center;padding:30px}
 @media(orientation:portrait){#rotate{display:flex}}
-@media(orientation:landscape) and (max-height:500px){#joy{width:104px;height:104px;left:14px;bottom:12px}#stick{left:29px;top:29px;width:42px;height:42px}.actions{bottom:12px;right:12px;grid-template-columns:repeat(2,58px);gap:7px}.btn{width:58px;height:50px}#hotbar{bottom:5px}.slot{width:42px;height:42px;flex-basis:42px}.top{top:6px}}
+@media(orientation:landscape) and (max-height:500px){
+#joy{width:104px;height:104px;left:14px;bottom:12px}
+#stick{left:29px;top:29px;width:42px;height:42px}
+.actions{bottom:12px;right:12px;grid-template-columns:repeat(2,58px);gap:7px}
+.btn{width:58px;height:50px}
+#hotbar{bottom:5px}
+.slot{width:42px;height:42px;flex-basis:42px}
+.top{top:6px}
+}
 </style>
 </head>
 <body>
 <div id="game"></div>
 <div id="hud">
- <div class="top"><div class="panel">🟩 BLOK DÜNYASI 3D<br><span id="status">Dünya hazır</span><br><span id="vitals">❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️　🍗🍗🍗🍗🍗🍗🍗🍗🍗🍗</span></div><div style="display:flex;gap:6px;pointer-events:auto"><button class="btn" id="save" style="width:auto;height:42px;padding:0 10px">💾 Kaydet</button><button class="btn" id="load" style="width:auto;height:42px;padding:0 10px">📂 Yükle</button></div></div>
- <div id="crosshair"></div>
- <div id="onlinePanel" style="position:fixed;left:10px;top:88px;z-index:4;pointer-events:auto;background:#101820dd;border:1px solid #ffffff40;border-radius:12px;padding:8px;display:flex;gap:5px;align-items:center;flex-wrap:wrap;max-width:min(560px,95vw)">
-  <input id="serverUrl" value="" aria-label="Sunucu adresi" style="width:155px;min-width:110px;background:#243441;color:white;border:1px solid #ffffff55;border-radius:7px;padding:7px;font-size:11px">
-  <input id="roomCode" value="AGALAR" maxlength="16" aria-label="Oda kodu" style="width:82px;background:#243441;color:white;border:1px solid #ffffff55;border-radius:7px;padding:7px;font-size:11px;text-transform:uppercase">
-  <input id="playerName" value="Oyuncu" maxlength="16" aria-label="Oyuncu adı" style="width:78px;background:#243441;color:white;border:1px solid #ffffff55;border-radius:7px;padding:7px;font-size:11px">
-  <select id="gameMode" style="background:#243441;color:white;border:1px solid #ffffff55;border-radius:7px;padding:7px;font-size:11px"><option value="survival">Survival</option><option value="creative">Creative</option></select>
-  <button id="connectOnline" class="btn" style="width:auto;height:32px;padding:0 9px">🌐 Bağlan</button>
-  <span id="onlineStatus" style="font-size:10px;color:#d9f99d">Çevrimdışı</span>
- </div>
- <div id="chatBox" style="position:fixed;left:10px;bottom:78px;width:min(290px,45vw);z-index:4;pointer-events:auto;background:#101820b8;border:1px solid #ffffff30;border-radius:10px;padding:7px">
-  <div id="chatLog" style="height:62px;overflow:auto;font-size:11px;color:#e2e8f0;white-space:pre-wrap">Sohbet çevrimdışı.</div>
-  <div style="display:flex;gap:4px;margin-top:5px"><input id="chatInput" placeholder="Mesaj yaz..." maxlength="180" style="min-width:0;flex:1;background:#243441;color:white;border:1px solid #ffffff55;border-radius:6px;padding:6px;font-size:11px"><button id="sendChat" class="btn" style="width:42px;height:30px">➤</button></div>
- </div>
- <div id="controls">
-  <div id="joy"><div id="stick"></div></div>
-  <div id="lookHint">KAMERAYI<br>ÇEVİR</div>
-  <div class="actions">
-   <button class="btn" id="jump">⬆️<br>ZIPLA</button>
-   <button class="btn" id="break">⛏️<br>KIR</button>
-   <button class="btn" id="place">🧱<br>KOY</button>
-  </div>
-  <div id="inventoryLabel">ENVANTER • Kırdıkça blok kazanırsın</div>
-  <div id="hotbar">
-   <div class="slot selected" data-type="grass">🟩<small>1</small><span class="count" id="count-grass">64</span></div>
-   <div class="slot" data-type="dirt">🟫<small>2</small><span class="count" id="count-dirt">64</span></div>
-   <div class="slot" data-type="stone">⬜<small>3</small><span class="count" id="count-stone">64</span></div>
-   <div class="slot" data-type="wood">🪵<small>4</small><span class="count" id="count-wood">64</span></div>
-   <div class="slot" data-type="sand">🟨<small>5</small><span class="count" id="count-sand">64</span></div>
-   <div class="slot" data-type="brick">🧱<small>6</small><span class="count" id="count-brick">64</span></div>
-  </div>
- </div>
+<div class="top">
+<div class="panel">🟩 BLOK DÜNYASI 3D<br><span id="status">Dünya hazır</span><br><span id="vitals">❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️　🍗🍗🍗🍗🍗🍗🍗🍗🍗🍗</span></div>
+<div style="display:flex;gap:6px;pointer-events:auto">
+<button class="btn" id="save" style="width:auto;height:42px;padding:0 10px">💾 Kaydet</button>
+<button class="btn" id="load" style="width:auto;height:42px;padding:0 10px">📂 Yükle</button>
 </div>
-<div id="menu"><div class="card"><h1>🌍 BLOK DÜNYASI</h1><p>Mobil için hazırlanmış 3D blok oyunu.<br>Yatay ekrana geç, joystick ile yürü, sağ tarafta sürükleyerek bak. Blokları kır ve kendi yapını inşa et.</p><button class="primary" id="start">OYUNA BAŞLA</button><p style="font-size:11px;margin-bottom:0">En iyi deneyim için telefonu/tableti yatay tut.</p></div></div>
+</div>
+
+<div id="crosshair"></div>
+
+<div id="onlinePanel" style="position:fixed;left:10px;top:88px;z-index:4;pointer-events:auto;background:#101820dd;border:1px solid #ffffff40;border-radius:12px;padding:8px;display:flex;gap:5px;align-items:center;flex-wrap:wrap;max-width:min(560px,95vw)">
+<input id="serverUrl" value="" aria-label="Sunucu adresi" style="width:155px;min-width:110px;background:#243441;color:white;border:1px solid #ffffff55;border-radius:7px;padding:7px;font-size:11px">
+<input id="roomCode" value="AGALAR" maxlength="16" aria-label="Oda kodu" style="width:82px;background:#243441;color:white;border:1px solid #ffffff55;border-radius:7px;padding:7px;font-size:11px;text-transform:uppercase">
+<input id="playerName" value="Oyuncu" maxlength="16" aria-label="Oyuncu adı" style="width:78px;background:#243441;color:white;border:1px solid #ffffff55;border-radius:7px;padding:7px;font-size:11px">
+<select id="gameMode" style="background:#243441;color:white;border:1px solid #ffffff55;border-radius:7px;padding:7px;font-size:11px">
+<option value="survival">Survival</option>
+<option value="creative">Creative</option>
+</select>
+<button id="connectOnline" class="btn" style="width:auto;height:32px;padding:0 9px">🌐 Bağlan</button>
+<span id="onlineStatus" style="font-size:10px;color:#d9f99d">Çevrimdışı</span>
+</div>
+
+<div id="chatBox" style="position:fixed;left:10px;bottom:78px;width:min(290px,45vw);z-index:4;pointer-events:auto;background:#101820b8;border:1px solid #ffffff30;border-radius:10px;padding:7px">
+<div id="chatLog" style="height:62px;overflow:auto;font-size:11px;color:#e2e8f0;white-space:pre-wrap">Sohbet çevrimdışı.</div>
+<div style="display:flex;gap:4px;margin-top:5px">
+<input id="chatInput" placeholder="Mesaj yaz..." maxlength="180" style="min-width:0;flex:1;background:#243441;color:white;border:1px solid #ffffff55;border-radius:6px;padding:6px;font-size:11px">
+<button id="sendChat" class="btn" style="width:42px;height:30px">➤</button>
+</div>
+</div>
+
+<!-- PANEL AÇMA / KAPAMA DÜĞMESİ -->
+<button id="panelToggle" type="button" aria-label="Panelleri gizle" aria-expanded="true">◀</button>
+
+<div id="controls">
+<div id="joy"><div id="stick"></div></div>
+<div id="lookHint">KAMERAYI<br>ÇEVİR</div>
+<div class="actions">
+<button class="btn" id="jump">⬆️<br>ZIPLA</button>
+<button class="btn" id="break">⛏️<br>KIR</button>
+<button class="btn" id="place">🧱<br>KOY</button>
+</div>
+<div id="inventoryLabel">ENVANTER • Kırdıkça blok kazanırsın</div>
+<div id="hotbar">
+<div class="slot selected" data-type="grass">🟩<small>1</small><span class="count" id="count-grass">64</span></div>
+<div class="slot" data-type="dirt">🟫<small>2</small><span class="count" id="count-dirt">64</span></div>
+<div class="slot" data-type="stone">⬜<small>3</small><span class="count" id="count-stone">64</span></div>
+<div class="slot" data-type="wood">🪵<small>4</small><span class="count" id="count-wood">64</span></div>
+<div class="slot" data-type="sand">🟨<small>5</small><span class="count" id="count-sand">64</span></div>
+<div class="slot" data-type="brick">🧱<small>6</small><span class="count" id="count-brick">64</span></div>
+</div>
+</div>
+</div>
+
+<div id="menu">
+<div class="card">
+<h1>🌍 BLOK DÜNYASI</h1>
+<p>Mobil için hazırlanmış 3D blok oyunu.<br>Yatay ekrana geç, joystick ile yürü, sağ tarafta sürükleyerek bak. Blokları kır ve kendi yapını inşa et.</p>
+<button class="primary" id="start">OYUNA BAŞLA</button>
+<p style="font-size:11px;margin-bottom:0">En iyi deneyim için telefonu/tableti yatay tut.</p>
+</div>
+</div>
 <div id="rotate">📱<br><br>Oyunu oynamak için cihazını yatay çevir.</div>
+
 <script type="module">
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-const root=document.getElementById('game'), statusEl=document.getElementById('status');
+
+const root=document.getElementById('game'),statusEl=document.getElementById('status');
+
+/* PANEL GİZLEME SİSTEMİ */
+const panelToggle=document.getElementById('panelToggle');
+panelToggle.addEventListener('click',()=>{
+ const hidden=document.body.classList.toggle('panels-hidden');
+ panelToggle.textContent=hidden?'▶':'◀';
+ panelToggle.setAttribute('aria-expanded',String(!hidden));
+ panelToggle.setAttribute('aria-label',hidden?'Panelleri göster':'Panelleri gizle');
+});
+
 const serverUrlInput=document.getElementById('serverUrl');
-if(serverUrlInput && !serverUrlInput.value){
-  const hosted = location.hostname && location.hostname !== '127.0.0.1' && location.hostname !== 'localhost';
-  serverUrlInput.value = hosted
-    ? `${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}`
-    : 'ws://127.0.0.1:8080';
+if(serverUrlInput&&!serverUrlInput.value){
+ const hosted=location.hostname&&location.hostname!=='127.0.0.1'&&location.hostname!=='localhost';
+ serverUrlInput.value=hosted
+ ?`${location.protocol==='https:'?'wss:':'ws:'}//${location.host}`
+ :'ws://127.0.0.1:8080';
 }
-const scene=new THREE.Scene(); scene.background=new THREE.Color(0x87ceeb); scene.fog=new THREE.Fog(0x87ceeb,18,58);
-const camera=new THREE.PerspectiveCamera(75,innerWidth/innerHeight,.1,100); camera.rotation.order='YXZ';
-const renderer=new THREE.WebGLRenderer({antialias:true}); renderer.setPixelRatio(Math.min(devicePixelRatio,1.7)); renderer.setSize(innerWidth,innerHeight); renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap; root.appendChild(renderer.domElement);
+
+const scene=new THREE.Scene();
+scene.background=new THREE.Color(0x87ceeb);
+scene.fog=new THREE.Fog(0x87ceeb,18,58);
+const camera=new THREE.PerspectiveCamera(75,innerWidth/innerHeight,.1,100);
+camera.rotation.order='YXZ';
+
+const renderer=new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));
+renderer.setSize(innerWidth,innerHeight);
+renderer.shadowMap.enabled=true;
+renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+root.appendChild(renderer.domElement);
+
 scene.add(new THREE.HemisphereLight(0xffffff,0x65734d,2));
-const sun=new THREE.DirectionalLight(0xffffff,2.1);sun.position.set(-12,22,10);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);scene.add(sun);
+const sun=new THREE.DirectionalLight(0xffffff,2.1);
+sun.position.set(-12,22,10);
+sun.castShadow=true;
+sun.shadow.mapSize.set(1024,1024);
+scene.add(sun);
+
 const mats={
- grass:new THREE.MeshLambertMaterial({color:0x55a83d}), dirt:new THREE.MeshLambertMaterial({color:0x80502e}),
- stone:new THREE.MeshLambertMaterial({color:0x888d91}), wood:new THREE.MeshLambertMaterial({color:0x95602f}),
- sand:new THREE.MeshLambertMaterial({color:0xd8c27a}), brick:new THREE.MeshLambertMaterial({color:0xa94d3d}),
+ grass:new THREE.MeshLambertMaterial({color:0x55a83d}),
+ dirt:new THREE.MeshLambertMaterial({color:0x80502e}),
+ stone:new THREE.MeshLambertMaterial({color:0x888d91}),
+ wood:new THREE.MeshLambertMaterial({color:0x95602f}),
+ sand:new THREE.MeshLambertMaterial({color:0xd8c27a}),
+ brick:new THREE.MeshLambertMaterial({color:0xa94d3d}),
  leaves:new THREE.MeshLambertMaterial({color:0x347c37})
 };
-const geo=new THREE.BoxGeometry(1,1,1), blocks=new Map(), meshes=[];
+
+const geo=new THREE.BoxGeometry(1,1,1),blocks=new Map(),meshes=[];
 const key=(x,y,z)=>`${x},${y},${z}`;
 const inventory={grass:64,dirt:64,stone:64,wood:64,sand:64,brick:64};
-function updateInventory(){for(const t of Object.keys(inventory)){const el=document.getElementById('count-'+t);if(el)el.textContent=inventory[t];}}
-let net=null, myId=null, remotePlayers=new Map(), currentRoom=null, currentMode='survival', syncingWorld=false;
-function addBlock(x,y,z,type,update=true,fromNet=false){const k=key(x,y,z);if(blocks.has(k))return;const m=new THREE.Mesh(geo,mats[type]||mats.grass);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;m.userData={x,y,z,type};scene.add(m);blocks.set(k,m);meshes.push(m);if(update)statusEl.textContent='Blok yerleştirildi';if(net&&net.readyState===1&&!fromNet)net.send(JSON.stringify({type:'blockAdd',block:{x,y,z,type}}));}
-function removeBlock(m,fromNet=false){if(!m)return;const p=m.userData;scene.remove(m);blocks.delete(key(p.x,p.y,p.z));const i=meshes.indexOf(m);if(i>=0)meshes.splice(i,1);if(inventory[p.type]!==undefined&&currentMode!=='creative'){inventory[p.type]++;updateInventory();}if(net&&net.readyState===1&&!fromNet)net.send(JSON.stringify({type:'blockRemove',pos:{x:p.x,y:p.y,z:p.z}}));statusEl.textContent='Blok kırıldı • '+p.type;}
-function heightAt(x,z){return Math.floor(1+Math.sin(x*.42)*.7+Math.cos(z*.36)*.55+Math.sin((x+z)*.22)*.45);}
-for(let x=-18;x<=18;x++)for(let z=-18;z<=18;z++){let h=heightAt(x,z);for(let y=-2;y<=h;y++)addBlock(x,y,z,y===h?'grass':y>h-3?'dirt':'stone',false);}
-for(let i=0;i<12;i++){let x=Math.floor(Math.random()*27-13),z=Math.floor(Math.random()*27-13),h=heightAt(x,z);if(Math.abs(x)<3&&Math.abs(z)<3)continue;for(let y=1;y<=3;y++)addBlock(x,h+y,z,'wood',false);for(let dx=-2;dx<=2;dx++)for(let dz=-2;dz<=2;dz++)for(let dy=2;dy<=4;dy++)if(Math.abs(dx)+Math.abs(dz)+(dy===4?1:0)<5)addBlock(x+dx,h+dy,z+dz,'leaves',false);}
+
+function updateInventory(){
+ for(const t of Object.keys(inventory)){
+  const el=document.getElementById('count-'+t);
+  if(el)el.textContent=inventory[t];
+ }
+}
+
+let net=null,myId=null,remotePlayers=new Map(),currentRoom=null,currentMode='survival',syncingWorld=false;
+
+function addBlock(x,y,z,type,update=true,fromNet=false){
+ const k=key(x,y,z);
+ if(blocks.has(k))return;
+ const m=new THREE.Mesh(geo,mats[type]||mats.grass);
+ m.position.set(x,y,z);
+ m.castShadow=true;
+ m.receiveShadow=true;
+ m.userData={x,y,z,type};
+ scene.add(m);
+ blocks.set(k,m);
+ meshes.push(m);
+ if(update)statusEl.textContent='Blok yerleştirildi';
+ if(net&&net.readyState===1&&!fromNet)
+ net.send(JSON.stringify({type:'blockAdd',block:{x,y,z,type}}));
+}
+
+function removeBlock(m,fromNet=false){
+ if(!m)return;
+ const p=m.userData;
+ scene.remove(m);
+ blocks.delete(key(p.x,p.y,p.z));
+ const i=meshes.indexOf(m);
+ if(i>=0)meshes.splice(i,1);
+ if(inventory[p.type]!==undefined&&currentMode!=='creative'){
+  inventory[p.type]++;
+  updateInventory();
+ }
+ if(net&&net.readyState===1&&!fromNet)
+ net.send(JSON.stringify({type:'blockRemove',pos:{x:p.x,y:p.y,z:p.z}}));
+ statusEl.textContent='Blok kırıldı • '+p.type;
+}
+
+function heightAt(x,z){
+ return Math.floor(1+Math.sin(x*.42)*.7+Math.cos(z*.36)*.55+Math.sin((x+z)*.22)*.45);
+}
+
+for(let x=-18;x<=18;x++)for(let z=-18;z<=18;z++){
+ let h=heightAt(x,z);
+ for(let y=-2;y<=h;y++)
+ addBlock(x,y,z,y===h?'grass':y>h-3?'dirt':'stone',false);
+}
+
+for(let i=0;i<12;i++){
+ let x=Math.floor(Math.random()*27-13),z=Math.floor(Math.random()*27-13),h=heightAt(x,z);
+ if(Math.abs(x)<3&&Math.abs(z)<3)continue;
+ for(let y=1;y<=3;y++)addBlock(x,h+y,z,'wood',false);
+ for(let dx=-2;dx<=2;dx++)for(let dz=-2;dz<=2;dz++)for(let dy=2;dy<=4;dy++)
+ if(Math.abs(dx)+Math.abs(dz)+(dy===4?1:0)<5)
+ addBlock(x+dx,h+dy,z+dz,'leaves',false);
+}
+
 const player={x:0,y:5,z:5,vy:0,yaw:0,pitch:0,onGround:false,health:20,hunger:20};
 camera.position.set(player.x,player.y,player.z);
+
 const mobMaterials={
- sheep:new THREE.MeshLambertMaterial({color:0xe8e4d8}), pig:new THREE.MeshLambertMaterial({color:0xe78b9b}),
- zombie:new THREE.MeshLambertMaterial({color:0x398b54}), skin:new THREE.MeshLambertMaterial({color:0xb77b55}),
- dark:new THREE.MeshLambertMaterial({color:0x343b45}), wool:new THREE.MeshLambertMaterial({color:0xf2eee4})
+ sheep:new THREE.MeshLambertMaterial({color:0xe8e4d8}),
+ pig:new THREE.MeshLambertMaterial({color:0xe78b9b}),
+ zombie:new THREE.MeshLambertMaterial({color:0x398b54}),
+ skin:new THREE.MeshLambertMaterial({color:0xb77b55}),
+ dark:new THREE.MeshLambertMaterial({color:0x343b45}),
+ wool:new THREE.MeshLambertMaterial({color:0xf2eee4})
 };
+
 const mobs=[];
+
 function makeMob(type,x,z){
- const g=new THREE.Group(), animal=type!=='zombie';
- const body=new THREE.Mesh(new THREE.BoxGeometry(animal?0.95:0.72,animal?0.65:0.9,animal?0.55:0.42),type==='sheep'?mobMaterials.wool:type==='pig'?mobMaterials.pig:mobMaterials.zombie);
- body.position.y=animal?0.82:1.05;g.add(body);
- const head=new THREE.Mesh(new THREE.BoxGeometry(animal?0.48:0.48,0.48,0.48),type==='zombie'?mobMaterials.skin:type==='sheep'?mobMaterials.sheep:mobMaterials.pig);
- head.position.set(0.12,animal?1.12:1.62,0.25);g.add(head);
+ const g=new THREE.Group(),animal=type!=='zombie';
+ const body=new THREE.Mesh(
+  new THREE.BoxGeometry(animal?0.95:0.72,animal?0.65:0.9,animal?0.55:0.42),
+  type==='sheep'?mobMaterials.wool:type==='pig'?mobMaterials.pig:mobMaterials.zombie
+ );
+ body.position.y=animal?0.82:1.05;
+ g.add(body);
+
+ const head=new THREE.Mesh(
+  new THREE.BoxGeometry(animal?0.48:0.48,0.48,0.48),
+  type==='zombie'?mobMaterials.skin:type==='sheep'?mobMaterials.sheep:mobMaterials.pig
+ );
+ head.position.set(0.12,animal?1.12:1.62,0.25);
+ g.add(head);
+
  const legs=[];
  for(const dx of [-0.28,0.28])for(const dz of [-0.16,0.16]){
   const leg=new THREE.Mesh(new THREE.BoxGeometry(0.18,0.48,0.18),type==='zombie'?mobMaterials.dark:mobMaterials.skin);
-  leg.position.set(dx,0.25,dz);g.add(leg);legs.push(leg);
+  leg.position.set(dx,0.25,dz);
+  g.add(leg);
+  legs.push(leg);
  }
+
  if(type==='zombie'){
   const armMat=mobMaterials.zombie;
-  for(const dx of [-0.48,0.48]){const arm=new THREE.Mesh(new THREE.BoxGeometry(0.18,0.68,0.18),armMat);arm.position.set(dx,1.1,0.28);arm.rotation.x=-0.8;g.add(arm);}
+  for(const dx of [-0.48,0.48]){
+   const arm=new THREE.Mesh(new THREE.BoxGeometry(0.18,0.68,0.18),armMat);
+   arm.position.set(dx,1.1,0.28);
+   arm.rotation.x=-0.8;
+   g.add(arm);
+  }
  }
- g.position.set(x,heightAt(Math.round(x),Math.round(z))+0.52,z);scene.add(g);
+
+ g.position.set(x,heightAt(Math.round(x),Math.round(z))+0.52,z);
+ scene.add(g);
  mobs.push({type,group:g,legs,phase:Math.random()*6,speed:type==='zombie'?0.85:0.35,attack:0,alive:true});
 }
-for(let i=0;i<9;i++){let x=Math.random()*28-14,z=Math.random()*28-14;if(Math.hypot(x-player.x,z-player.z)>5)makeMob(i%2?'sheep':'pig',x,z);}
-for(let i=0;i<4;i++){let x=Math.random()*28-14,z=Math.random()*28-14;if(Math.hypot(x-player.x,z-player.z)>7)makeMob('zombie',x,z);}
-function updateVitals(){const h=Math.max(0,Math.min(20,player.health)),f=Math.max(0,Math.min(20,player.hunger));document.getElementById('vitals').textContent='❤️'.repeat(Math.ceil(h/2))+'🖤'.repeat(10-Math.ceil(h/2))+'　🍗'.repeat(Math.ceil(f/2))+'▫️'.repeat(10-Math.ceil(f/2));}
+
+for(let i=0;i<9;i++){
+ let x=Math.random()*28-14,z=Math.random()*28-14;
+ if(Math.hypot(x-player.x,z-player.z)>5)makeMob(i%2?'sheep':'pig',x,z);
+}
+for(let i=0;i<4;i++){
+ let x=Math.random()*28-14,z=Math.random()*28-14;
+ if(Math.hypot(x-player.x,z-player.z)>7)makeMob('zombie',x,z);
+}
+
+function updateVitals(){
+ const h=Math.max(0,Math.min(20,player.health)),f=Math.max(0,Math.min(20,player.hunger));
+ document.getElementById('vitals').textContent=
+ '❤️'.repeat(Math.ceil(h/2))+'🖤'.repeat(10-Math.ceil(h/2))+'　🍗'.repeat(Math.ceil(f/2))+'▫️'.repeat(10-Math.ceil(f/2));
+}
+
 let hungerClock=0,damageFlash=0;
+
 function updateMobs(dt,now){
- if(currentMode==='survival'){hungerClock+=dt;if(hungerClock>28){hungerClock=0;player.hunger=Math.max(0,player.hunger-1);updateVitals();}}
- for(const mob of mobs){if(!mob.alive)continue;const g=mob.group,dx=player.x-g.position.x,dz=player.z-g.position.z,dist=Math.hypot(dx,dz);mob.phase+=dt*5;
-  if(mob.type==='zombie'&&dist<10){g.position.x+=(dx/(dist||1))*mob.speed*dt;g.position.z+=(dz/(dist||1))*mob.speed*dt;g.rotation.y=Math.atan2(dx,dz);}
-  else if(Math.random()<dt*0.35){g.position.x+=(Math.random()-.5)*dt*1.5;g.position.z+=(Math.random()-.5)*dt*1.5;}
+ if(currentMode==='survival'){
+  hungerClock+=dt;
+  if(hungerClock>28){
+   hungerClock=0;
+   player.hunger=Math.max(0,player.hunger-1);
+   updateVitals();
+  }
+ }
+
+ for(const mob of mobs){
+  if(!mob.alive)continue;
+  const g=mob.group,dx=player.x-g.position.x,dz=player.z-g.position.z,dist=Math.hypot(dx,dz);
+  mob.phase+=dt*5;
+
+  if(mob.type==='zombie'&&dist<10){
+   g.position.x+=(dx/(dist||1))*mob.speed*dt;
+   g.position.z+=(dz/(dist||1))*mob.speed*dt;
+   g.rotation.y=Math.atan2(dx,dz);
+  }else if(Math.random()<dt*0.35){
+   g.position.x+=(Math.random()-.5)*dt*1.5;
+   g.position.z+=(Math.random()-.5)*dt*1.5;
+  }
+
   g.position.y=heightAt(Math.round(g.position.x),Math.round(g.position.z))+0.52;
   mob.legs.forEach((leg,i)=>{leg.rotation.x=Math.sin(mob.phase+(i%2)*Math.PI)*0.45;});
-  if(currentMode==='survival'&&mob.type==='zombie'&&dist<1.35){mob.attack-=dt;if(mob.attack<=0){player.health=Math.max(0,player.health-2);mob.attack=1.15;updateVitals();statusEl.textContent=player.health?'Zombi saldırdı!':'Yere düştün!';if(player.health===0){player.health=20;player.hunger=15;player.x=0;player.y=8;player.z=5;updateVitals();statusEl.textContent='Yeniden doğdun';}}}
+
+  if(currentMode==='survival'&&mob.type==='zombie'&&dist<1.35){
+   mob.attack-=dt;
+   if(mob.attack<=0){
+    player.health=Math.max(0,player.health-2);
+    mob.attack=1.15;
+    updateVitals();
+    statusEl.textContent=player.health?'Zombi saldırdı!':'Yere düştün!';
+    if(player.health===0){
+     player.health=20;
+     player.hunger=15;
+     player.x=0;
+     player.y=8;
+     player.z=5;
+     updateVitals();
+     statusEl.textContent='Yeniden doğdun';
+    }
+   }
+  }
  }
 }
+
 function attackMob(){
  let best=null,bestD=2.5;
- for(const mob of mobs){if(!mob.alive)continue;const d=Math.hypot(player.x-mob.group.position.x,player.z-mob.group.position.z);if(d<bestD){best=mob;bestD=d;}}
- if(best){best.alive=false;scene.remove(best.group);if(best.type==='zombie'){inventory.rotten_flesh=(inventory.rotten_flesh||0)+1;statusEl.textContent='Zombi yenildi! Çürük et +1';}else{inventory.food=(inventory.food||0)+1;statusEl.textContent='Hayvan avlandı! Yiyecek +1';}return true;}return false;
+ for(const mob of mobs){
+  if(!mob.alive)continue;
+  const d=Math.hypot(player.x-mob.group.position.x,player.z-mob.group.position.z);
+  if(d<bestD){best=mob;bestD=d;}
+ }
+ if(best){
+  best.alive=false;
+  scene.remove(best.group);
+  if(best.type==='zombie'){
+   inventory.rotten_flesh=(inventory.rotten_flesh||0)+1;
+   statusEl.textContent='Zombi yenildi! Çürük et +1';
+  }else{
+   inventory.food=(inventory.food||0)+1;
+   statusEl.textContent='Hayvan avlandı! Yiyecek +1';
+  }
+  return true;
+ }
+ return false;
 }
+
 updateVitals();
-const ray=new THREE.Raycaster();let selected='grass';
-function targetBlock(){ray.setFromCamera(new THREE.Vector2(0,0),camera);const hits=ray.intersectObjects(meshes,false);return hits.find(h=>h.distance<6)||null;}
-function breakTarget(){if(attackMob())return;const h=targetBlock();if(h)removeBlock(h.object);}
-function placeTarget(){const h=targetBlock();if(!h)return;if(currentMode!=='creative'&&(inventory[selected]||0)<=0){statusEl.textContent='Bu bloktan kalmadı!';return;}const n=h.face.normal.clone().transformDirection(h.object.matrixWorld);const p=h.object.position.clone().add(n);const x=Math.round(p.x),y=Math.round(p.y),z=Math.round(p.z);if(Math.abs(x-player.x)<1&&Math.abs(z-player.z)<1&&Math.abs(y-(player.y-1))<2)return;if(blocks.has(key(x,y,z)))return;addBlock(x,y,z,selected);if(currentMode!=='creative'){inventory[selected]--;updateInventory();}statusEl.textContent=currentMode==='creative'?'Creative: Blok yerleştirildi':'Yerleştirildi • '+inventory[selected]+' kaldı';}
+
+const ray=new THREE.Raycaster();
+let selected='grass';
+
+function targetBlock(){
+ ray.setFromCamera(new THREE.Vector2(0,0),camera);
+ const hits=ray.intersectObjects(meshes,false);
+ return hits.find(h=>h.distance<6)||null;
+}
+
+function breakTarget(){
+ if(attackMob())return;
+ const h=targetBlock();
+ if(h)removeBlock(h.object);
+}
+
+function placeTarget(){
+ const h=targetBlock();
+ if(!h)return;
+ if(currentMode!=='creative'&&(inventory[selected]||0)<=0){
+  statusEl.textContent='Bu bloktan kalmadı!';
+  return;
+ }
+ const n=h.face.normal.clone().transformDirection(h.object.matrixWorld);
+ const p=h.object.position.clone().add(n);
+ const x=Math.round(p.x),y=Math.round(p.y),z=Math.round(p.z);
+ if(Math.abs(x-player.x)<1&&Math.abs(z-player.z)<1&&Math.abs(y-(player.y-1))<2)return;
+ if(blocks.has(key(x,y,z)))return;
+ addBlock(x,y,z,selected);
+ if(currentMode!=='creative'){
+  inventory[selected]--;
+  updateInventory();
+ }
+ statusEl.textContent=currentMode==='creative'?'Creative: Blok yerleştirildi':'Yerleştirildi • '+inventory[selected]+' kaldı';
+}
+
 document.getElementById('break').addEventListener('pointerdown',e=>{e.preventDefault();breakTarget()});
 document.getElementById('place').addEventListener('pointerdown',e=>{e.preventDefault();placeTarget()});
-document.querySelectorAll('.slot').forEach(el=>el.addEventListener('pointerdown',()=>{document.querySelector('.slot.selected')?.classList.remove('selected');el.classList.add('selected');selected=el.dataset.type;statusEl.textContent='Seçili: '+selected;}));
+
+document.querySelectorAll('.slot').forEach(el=>el.addEventListener('pointerdown',()=>{
+ document.querySelector('.slot.selected')?.classList.remove('selected');
+ el.classList.add('selected');
+ selected=el.dataset.type;
+ statusEl.textContent='Seçili: '+selected;
+}));
+
 updateInventory();
+
 function saveWorld(){
  try{
-  const data={version:1,mode:currentMode,player:{x:player.x,y:player.y,z:player.z,yaw:player.yaw,pitch:player.pitch},inventory,
-   blocks:[...blocks.values()].map(m=>({x:m.userData.x,y:m.userData.y,z:m.userData.z,type:m.userData.type}))};
+  const data={
+   version:1,mode:currentMode,
+   player:{x:player.x,y:player.y,z:player.z,yaw:player.yaw,pitch:player.pitch},
+   inventory,
+   blocks:[...blocks.values()].map(m=>({x:m.userData.x,y:m.userData.y,z:m.userData.z,type:m.userData.type}))
+  };
   localStorage.setItem('blokDunyasi3D_save',JSON.stringify(data));
   statusEl.textContent='Dünya kaydedildi ✓';
- }catch(err){statusEl.textContent='Kayıt başarısız: depolama alanı dolu olabilir';}
+ }catch(err){
+  statusEl.textContent='Kayıt başarısız: depolama alanı dolu olabilir';
+ }
 }
+
 function loadWorld(){
  try{
-  const raw=localStorage.getItem('blokDunyasi3D_save');if(!raw){statusEl.textContent='Kayıt bulunamadı';return;}
-  const data=JSON.parse(raw);if(!data||data.version!==1||!Array.isArray(data.blocks))throw new Error('Geçersiz kayıt');
-  for(const m of [...meshes]){scene.remove(m);}
-  meshes.length=0;blocks.clear();
+  const raw=localStorage.getItem('blokDunyasi3D_save');
+  if(!raw){statusEl.textContent='Kayıt bulunamadı';return;}
+  const data=JSON.parse(raw);
+  if(!data||data.version!==1||!Array.isArray(data.blocks))throw new Error('Geçersiz kayıt');
+  for(const m of [...meshes])scene.remove(m);
+  meshes.length=0;
+  blocks.clear();
   for(const b of data.blocks){if(mats[b.type])addBlock(b.x,b.y,b.z,b.type,false);}
   if(data.player)Object.assign(player,data.player);
   if(data.mode){currentMode=data.mode;document.getElementById('gameMode').value=currentMode;}
   if(data.inventory)for(const t of Object.keys(inventory))inventory[t]=Math.max(0,Number(data.inventory[t])||0);
-  updateInventory();statusEl.textContent='Dünya yüklendi ✓';
- }catch(err){statusEl.textContent='Kayıt okunamadı';}
+  updateInventory();
+  statusEl.textContent='Dünya yüklendi ✓';
+ }catch(err){
+  statusEl.textContent='Kayıt okunamadı';
+ }
 }
 
-function logChat(line){const box=document.getElementById('chatLog');box.textContent=(box.textContent+'\n'+line).trim().split('\n').slice(-6).join('\n');box.scrollTop=box.scrollHeight;}
-function worldSnapshot(){return [...blocks.values()].map(m=>({x:m.userData.x,y:m.userData.y,z:m.userData.z,type:m.userData.type}));}
-function clearWorld(){for(const m of [...meshes])scene.remove(m);meshes.length=0;blocks.clear();}
+function logChat(line){
+ const box=document.getElementById('chatLog');
+ box.textContent=(box.textContent+'\n'+line).trim().split('\n').slice(-6).join('\n');
+ box.scrollTop=box.scrollHeight;
+}
+
+function worldSnapshot(){
+ return [...blocks.values()].map(m=>({x:m.userData.x,y:m.userData.y,z:m.userData.z,type:m.userData.type}));
+}
+
+function clearWorld(){
+ for(const m of [...meshes])scene.remove(m);
+ meshes.length=0;
+ blocks.clear();
+}
+
 function addRemote(id,data){
  if(id===myId)return;
  let entry=remotePlayers.get(id);
  if(!entry){
-  const group=new THREE.Group(), body=new THREE.Mesh(new THREE.BoxGeometry(.65,1.1,.38),new THREE.MeshLambertMaterial({color:0x3978d4}));
-  body.position.y=.85;group.add(body);
+  const group=new THREE.Group();
+  const body=new THREE.Mesh(new THREE.BoxGeometry(.65,1.1,.38),new THREE.MeshLambertMaterial({color:0x3978d4}));
+  body.position.y=.85;
+  group.add(body);
   const head=new THREE.Mesh(new THREE.BoxGeometry(.48,.48,.48),new THREE.MeshLambertMaterial({color:0xd8a47b}));
-  head.position.y=1.65;group.add(head);
-  const tag=document.createElement('div');tag.style.cssText='position:fixed;z-index:3;color:white;background:#101820bb;padding:2px 5px;border-radius:5px;font:11px system-ui;pointer-events:none;display:none';tag.textContent=data.name||'Oyuncu';document.body.appendChild(tag);
-  entry={group,tag,name:data.name||'Oyuncu',target:{x:data.x||0,y:data.y||4,z:data.z||0,yaw:0}};scene.add(group);remotePlayers.set(id,entry);
+  head.position.y=1.65;
+  group.add(head);
+  const tag=document.createElement('div');
+  tag.style.cssText='position:fixed;z-index:3;color:white;background:#101820bb;padding:2px 5px;border-radius:5px;font:11px system-ui;pointer-events:none;display:none';
+  tag.textContent=data.name||'Oyuncu';
+  document.body.appendChild(tag);
+  entry={group,tag,name:data.name||'Oyuncu',target:{x:data.x||0,y:data.y||4,z:data.z||0,yaw:0}};
+  scene.add(group);
+  remotePlayers.set(id,entry);
  }
- entry.target={x:Number(data.x)||0,y:Number(data.y)||4,z:Number(data.z)||0,yaw:Number(data.yaw)||0};entry.name=data.name||entry.name;entry.tag.textContent=entry.name;
+ entry.target={x:Number(data.x)||0,y:Number(data.y)||4,z:Number(data.z)||0,yaw:Number(data.yaw)||0};
+ entry.name=data.name||entry.name;
+ entry.tag.textContent=entry.name;
 }
-function removeRemote(id){const e=remotePlayers.get(id);if(!e)return;scene.remove(e.group);e.tag.remove();remotePlayers.delete(id);}
+
+function removeRemote(id){
+ const e=remotePlayers.get(id);
+ if(!e)return;
+ scene.remove(e.group);
+ e.tag.remove();
+ remotePlayers.delete(id);
+}
+
 function connectOnline(){
- const url=document.getElementById('serverUrl').value.trim(),room=document.getElementById('roomCode').value.trim().toUpperCase(),name=document.getElementById('playerName').value.trim()||'Oyuncu';
- currentMode=document.getElementById('gameMode').value;currentRoom=room;
- if(!/^wss?:\/\//i.test(url)||!room){statusEl.textContent='Sunucu adresi veya oda kodu hatalı';return;}
+ const url=document.getElementById('serverUrl').value.trim();
+ const room=document.getElementById('roomCode').value.trim().toUpperCase();
+ const name=document.getElementById('playerName').value.trim()||'Oyuncu';
+ currentMode=document.getElementById('gameMode').value;
+ currentRoom=room;
+
+ if(!/^wss?:\/\//i.test(url)||!room){
+  statusEl.textContent='Sunucu adresi veya oda kodu hatalı';
+  return;
+ }
  if(net)try{net.close();}catch(e){}
- const state=document.getElementById('onlineStatus');state.textContent='Bağlanıyor...';
- try{net=new WebSocket(url);}catch(e){state.textContent='Bağlantı açılamadı';return;}
- net.onopen=()=>{net.send(JSON.stringify({type:'join',room,name,mode:currentMode,world:worldSnapshot()}));state.textContent='Bağlandı • '+room;statusEl.textContent='Online: '+room;logChat('Sunucuya bağlandın.');document.getElementById('connectOnline').textContent='🔌 Ayrıl';};
+ const state=document.getElementById('onlineStatus');
+ state.textContent='Bağlanıyor...';
+
+ try{net=new WebSocket(url);}catch(e){
+  state.textContent='Bağlantı açılamadı';
+  return;
+ }
+
+ net.onopen=()=>{
+  net.send(JSON.stringify({type:'join',room,name,mode:currentMode,world:worldSnapshot()}));
+  state.textContent='Bağlandı • '+room;
+  statusEl.textContent='Online: '+room;
+  logChat('Sunucuya bağlandın.');
+  document.getElementById('connectOnline').textContent='🔌 Ayrıl';
+ };
+
  net.onmessage=(ev)=>{
-  let msg;try{msg=JSON.parse(ev.data)}catch(e){return;}
-  if(msg.type==='welcome'){myId=msg.id;currentMode=msg.mode||currentMode;document.getElementById('gameMode').value=currentMode;logChat('Odaya katıldın: '+currentRoom);(msg.players||[]).forEach(p=>addRemote(p.id,p));}
-  if(msg.type==='world'&&Array.isArray(msg.blocks)){syncingWorld=true;clearWorld();msg.blocks.forEach(b=>{if(mats[b.type])addBlock(b.x,b.y,b.z,b.type,false,true)});syncingWorld=false;statusEl.textContent='Ortak dünya yüklendi';}
-  if(msg.type==='playerJoin'){addRemote(msg.player.id,msg.player);logChat((msg.player.name||'Oyuncu')+' katıldı.');}
+  let msg;
+  try{msg=JSON.parse(ev.data)}catch(e){return;}
+
+  if(msg.type==='welcome'){
+   myId=msg.id;
+   currentMode=msg.mode||currentMode;
+   document.getElementById('gameMode').value=currentMode;
+   logChat('Odaya katıldın: '+currentRoom);
+   (msg.players||[]).forEach(p=>addRemote(p.id,p));
+  }
+
+  if(msg.type==='world'&&Array.isArray(msg.blocks)){
+   syncingWorld=true;
+   clearWorld();
+   msg.blocks.forEach(b=>{if(mats[b.type])addBlock(b.x,b.y,b.z,b.type,false,true)});
+   syncingWorld=false;
+   statusEl.textContent='Ortak dünya yüklendi';
+  }
+
+  if(msg.type==='playerJoin'){
+   addRemote(msg.player.id,msg.player);
+   logChat((msg.player.name||'Oyuncu')+' katıldı.');
+  }
   if(msg.type==='playerLeave'){removeRemote(msg.id);logChat('Bir oyuncu ayrıldı.');}
   if(msg.type==='playerMove'){addRemote(msg.id,msg.player);}
   if(msg.type==='blockAdd'&&msg.block)addBlock(msg.block.x,msg.block.y,msg.block.z,msg.block.type,false,true);
-  if(msg.type==='blockRemove'&&msg.pos){const m=blocks.get(key(msg.pos.x,msg.pos.y,msg.pos.z));if(m)removeBlock(m,true);}
+  if(msg.type==='blockRemove'&&msg.pos){
+   const m=blocks.get(key(msg.pos.x,msg.pos.y,msg.pos.z));
+   if(m)removeBlock(m,true);
+  }
   if(msg.type==='chat')logChat((msg.name||'Oyuncu')+': '+msg.text);
-  if(msg.type==='mode'){currentMode=msg.mode;document.getElementById('gameMode').value=currentMode;logChat('Oyun modu: '+currentMode);}
-  if(msg.type==='error'){state.textContent=msg.message||'Sunucu hatası';logChat('Hata: '+(msg.message||''));}
+  if(msg.type==='mode'){
+   currentMode=msg.mode;
+   document.getElementById('gameMode').value=currentMode;
+   logChat('Oyun modu: '+currentMode);
+  }
+  if(msg.type==='error'){
+   state.textContent=msg.message||'Sunucu hatası';
+   logChat('Hata: '+(msg.message||''));
+  }
  };
- net.onerror=()=>{state.textContent='Bağlantı hatası';statusEl.textContent='Sunucuya ulaşılamadı';};
- net.onclose=()=>{state.textContent='Çevrimdışı';document.getElementById('connectOnline').textContent='🌐 Bağlan';remotePlayers.forEach((v,k)=>removeRemote(k));myId=null;};
+
+ net.onerror=()=>{
+  state.textContent='Bağlantı hatası';
+  statusEl.textContent='Sunucuya ulaşılamadı';
+ };
+ net.onclose=()=>{
+  state.textContent='Çevrimdışı';
+  document.getElementById('connectOnline').textContent='🌐 Bağlan';
+  remotePlayers.forEach((v,k)=>removeRemote(k));
+  myId=null;
+ };
 }
-document.getElementById('connectOnline').addEventListener('click',()=>{if(net&&net.readyState<2){net.close();return;}connectOnline();});
-function sendChat(){const input=document.getElementById('chatInput'),text=input.value.trim();if(!text)return;if(net&&net.readyState===1){net.send(JSON.stringify({type:'chat',text}));input.value='';}else logChat('Önce sunucuya bağlanmalısın.');}
+
+document.getElementById('connectOnline').addEventListener('click',()=>{
+ if(net&&net.readyState<2){net.close();return;}
+ connectOnline();
+});
+
+function sendChat(){
+ const input=document.getElementById('chatInput'),text=input.value.trim();
+ if(!text)return;
+ if(net&&net.readyState===1){
+  net.send(JSON.stringify({type:'chat',text}));
+  input.value='';
+ }else logChat('Önce sunucuya bağlanmalısın.');
+}
+
 document.getElementById('sendChat').addEventListener('click',sendChat);
 document.getElementById('chatInput').addEventListener('keydown',e=>{if(e.key==='Enter')sendChat();});
+
 let netTick=0;
+
 function updateNetwork(dt){
- for(const e of remotePlayers.values()){const t=e.target;e.group.position.x+=(t.x-e.group.position.x)*Math.min(1,dt*12);e.group.position.y+=(t.y-e.group.position.y)*Math.min(1,dt*12);e.group.position.z+=(t.z-e.group.position.z)*Math.min(1,dt*12);e.group.rotation.y=t.yaw;
+ for(const e of remotePlayers.values()){
+  const t=e.target;
+  e.group.position.x+=(t.x-e.group.position.x)*Math.min(1,dt*12);
+  e.group.position.y+=(t.y-e.group.position.y)*Math.min(1,dt*12);
+  e.group.position.z+=(t.z-e.group.position.z)*Math.min(1,dt*12);
+  e.group.rotation.y=t.yaw;
+
   const v=new THREE.Vector3(e.group.position.x,e.group.position.y+2.2,e.group.position.z).project(camera);
-  if(v.z<1){e.tag.style.display='block';e.tag.style.left=((v.x*.5+.5)*innerWidth)+'px';e.tag.style.top=((-v.y*.5+.5)*innerHeight)+'px';}else e.tag.style.display='none';
+  if(v.z<1){
+   e.tag.style.display='block';
+   e.tag.style.left=((v.x*.5+.5)*innerWidth)+'px';
+   e.tag.style.top=((-v.y*.5+.5)*innerHeight)+'px';
+  }else e.tag.style.display='none';
  }
- if(net&&net.readyState===1){netTick+=dt;if(netTick>.08){netTick=0;net.send(JSON.stringify({type:'move',player:{x:player.x,y:player.y,z:player.z,yaw:player.yaw,name:document.getElementById('playerName').value.trim()||'Oyuncu'}}));}}
+
+ if(net&&net.readyState===1){
+  netTick+=dt;
+  if(netTick>.08){
+   netTick=0;
+   net.send(JSON.stringify({type:'move',player:{x:player.x,y:player.y,z:player.z,yaw:player.yaw,name:document.getElementById('playerName').value.trim()||'Oyuncu'}}));
+  }
+ }
 }
 
 document.getElementById('save').addEventListener('pointerdown',e=>{e.preventDefault();saveWorld();});
 document.getElementById('load').addEventListener('pointerdown',e=>{e.preventDefault();loadWorld();});
 
-let joy={x:0,y:0,id:null};const joyEl=document.getElementById('joy'),stick=document.getElementById('stick');
-function joyMove(e){const r=joyEl.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;let dx=e.clientX-cx,dy=e.clientY-cy,l=Math.hypot(dx,dy),max=r.width*.34;if(l>max){dx=dx/l*max;dy=dy/l*max;}joy.x=dx/max;joy.y=dy/max;stick.style.transform=`translate(${dx}px,${dy}px)`;}
-joyEl.addEventListener('pointerdown',e=>{e.preventDefault();joy.id=e.pointerId;joyEl.setPointerCapture(e.pointerId);joyMove(e)});
+let joy={x:0,y:0,id:null};
+const joyEl=document.getElementById('joy'),stick=document.getElementById('stick');
+
+function joyMove(e){
+ const r=joyEl.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;
+ let dx=e.clientX-cx,dy=e.clientY-cy,l=Math.hypot(dx,dy),max=r.width*.34;
+ if(l>max){dx=dx/l*max;dy=dy/l*max;}
+ joy.x=dx/max;
+ joy.y=dy/max;
+ stick.style.transform=`translate(${dx}px,${dy}px)`;
+}
+
+joyEl.addEventListener('pointerdown',e=>{
+ e.preventDefault();
+ joy.id=e.pointerId;
+ joyEl.setPointerCapture(e.pointerId);
+ joyMove(e);
+});
 joyEl.addEventListener('pointermove',e=>{if(e.pointerId===joy.id)joyMove(e)});
-function joyEnd(e){if(e.pointerId===joy.id){joy.id=null;joy.x=joy.y=0;stick.style.transform='translate(0,0)';}}
-joyEl.addEventListener('pointerup',joyEnd);joyEl.addEventListener('pointercancel',joyEnd);
-let lookId=null,lastX=0,lastY=0;renderer.domElement.addEventListener('pointerdown',e=>{if(e.clientX>innerWidth*.35){lookId=e.pointerId;lastX=e.clientX;lastY=e.clientY;renderer.domElement.setPointerCapture(e.pointerId)}});
-renderer.domElement.addEventListener('pointermove',e=>{if(e.pointerId!==lookId)return;let dx=e.clientX-lastX,dy=e.clientY-lastY;lastX=e.clientX;lastY=e.clientY;player.yaw-=dx*.004;player.pitch-=dy*.004;player.pitch=Math.max(-1.35,Math.min(1.35,player.pitch));});
-renderer.domElement.addEventListener('pointerup',e=>{if(e.pointerId===lookId)lookId=null});renderer.domElement.addEventListener('pointercancel',()=>lookId=null);
-let jumpQueued=false;document.getElementById('jump').addEventListener('pointerdown',e=>{e.preventDefault();jumpQueued=true});
-function solidAt(x,y,z){return blocks.has(key(Math.round(x),Math.round(y),Math.round(z)));}
+
+function joyEnd(e){
+ if(e.pointerId===joy.id){
+  joy.id=null;
+  joy.x=joy.y=0;
+  stick.style.transform='translate(0,0)';
+ }
+}
+joyEl.addEventListener('pointerup',joyEnd);
+joyEl.addEventListener('pointercancel',joyEnd);
+
+let lookId=null,lastX=0,lastY=0;
+
+renderer.domElement.addEventListener('pointerdown',e=>{
+ if(e.clientX>innerWidth*.35){
+  lookId=e.pointerId;
+  lastX=e.clientX;
+  lastY=e.clientY;
+  renderer.domElement.setPointerCapture(e.pointerId);
+ }
+});
+
+renderer.domElement.addEventListener('pointermove',e=>{
+ if(e.pointerId!==lookId)return;
+ let dx=e.clientX-lastX,dy=e.clientY-lastY;
+ lastX=e.clientX;
+ lastY=e.clientY;
+ player.yaw-=dx*.004;
+ player.pitch-=dy*.004;
+ player.pitch=Math.max(-1.35,Math.min(1.35,player.pitch));
+});
+
+renderer.domElement.addEventListener('pointerup',e=>{if(e.pointerId===lookId)lookId=null});
+renderer.domElement.addEventListener('pointercancel',()=>lookId=null);
+
+/* ZIPLAMA KODU - KORUNDU */
+let jumpQueued=false;
+document.getElementById('jump').addEventListener('pointerdown',e=>{
+ e.preventDefault();
+ jumpQueued=true;
+});
+
+function solidAt(x,y,z){
+ return blocks.has(key(Math.round(x),Math.round(y),Math.round(z)));
+}
+
 function updatePlayer(dt){
  const forward=new THREE.Vector3(-Math.sin(player.yaw),0,-Math.cos(player.yaw));
  const right=new THREE.Vector3(Math.cos(player.yaw),0,-Math.sin(player.yaw));
- let move=forward.clone().multiplyScalar(-joy.y).add(right.multiplyScalar(joy.x));if(move.length()>1)move.normalize();
+ let move=forward.clone().multiplyScalar(-joy.y).add(right.multiplyScalar(joy.x));
+ if(move.length()>1)move.normalize();
+
  let nx=player.x+move.x*5*dt,nz=player.z+move.z*5*dt;
  if(!solidAt(nx,player.y-1.1,player.z)&&!solidAt(nx,player.y-.2,player.z))player.x=nx;
  if(!solidAt(player.x,player.y-1.1,nz)&&!solidAt(player.x,player.y-.2,nz))player.z=nz;
- if(jumpQueued&&player.onGround){player.vy=7.2;player.onGround=false;}jumpQueued=false;
- player.vy-=18*dt;let ny=player.y+player.vy*dt;
- if(player.vy<=0&&solidAt(player.x,ny-1.7,player.z)){ny=Math.round(ny-1.7)+1.7;player.vy=0;player.onGround=true;}else player.onGround=false;
- if(ny< -5){ny=8;player.vy=0;}player.y=ny;
- camera.position.set(player.x,player.y,player.z);camera.rotation.set(player.pitch,player.yaw,0);
+
+ if(jumpQueued&&player.onGround){player.vy=7.2;player.onGround=false;}
+ jumpQueued=false;
+
+ player.vy-=18*dt;
+ let ny=player.y+player.vy*dt;
+
+ if(player.vy<=0&&solidAt(player.x,ny-1.7,player.z)){
+  ny=Math.round(ny-1.7)+2.2;
+  player.vy=0;
+  player.onGround=true;
+ }else player.onGround=false;
+
+ if(ny< -5){ny=8;player.vy=0;}
+ player.y=ny;
+
+ camera.position.set(player.x,player.y,player.z);
+ camera.rotation.set(player.pitch,player.yaw,0);
 }
-let last=performance.now();function animate(now){requestAnimationFrame(animate);let dt=Math.min((now-last)/1000,.04);last=now;updatePlayer(dt);updateMobs(dt,now);updateNetwork(dt);renderer.render(scene,camera);}requestAnimationFrame(animate);
-function resize(){camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);}
+
+let last=performance.now();
+
+function animate(now){
+ requestAnimationFrame(animate);
+ let dt=Math.min((now-last)/1000,.04);
+ last=now;
+ updatePlayer(dt);
+ updateMobs(dt,now);
+ updateNetwork(dt);
+ renderer.render(scene,camera);
+}
+requestAnimationFrame(animate);
+
+function resize(){
+ camera.aspect=innerWidth/innerHeight;
+ camera.updateProjectionMatrix();
+ renderer.setSize(innerWidth,innerHeight);
+}
 addEventListener('resize',resize);
-document.getElementById('start').addEventListener('click',async()=>{document.getElementById('menu').style.display='none';try{if(screen.orientation?.lock)await screen.orientation.lock('landscape');}catch(e){};statusEl.textContent='İyi oyunlar!';});
+
+document.getElementById('start').addEventListener('click',async()=>{
+ document.getElementById('menu').style.display='none';
+ try{if(screen.orientation?.lock)await screen.orientation.lock('landscape');}catch(e){}
+ statusEl.textContent='İyi oyunlar!';
+});
 </script>
 </body>
 </html>
