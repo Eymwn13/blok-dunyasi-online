@@ -25,7 +25,7 @@ canvas{display:block}
 #crosshair:before{width:2px;height:18px;left:8px}
 #crosshair:after{height:2px;width:18px;top:8px}
 
-/* PANEL GİZLEME SİSTEMİ DÜZELTMELERİ */
+/* PANEL GİZLEME SİSTEMİ */
 #panelToggle{
 position:fixed;left:0;top:50%;transform:translateY(-50%);
 z-index:99999;width:38px;height:64px;
@@ -96,8 +96,8 @@ pointer-events:none!important;
 <div id="crosshair"></div>
 
 <div id="onlinePanel" style="position:fixed;left:10px;top:88px;z-index:4;pointer-events:auto;background:#101820dd;border:1px solid #ffffff40;border-radius:12px;padding:8px;display:flex;gap:5px;align-items:center;flex-wrap:wrap;max-width:min(560px,95vw)">
-<input id="serverUrl" value="" aria-label="Sunucu adresi" style="width:155px;min-width:110px;background:#243441;color:white;border:1px solid #ffffff55;border-radius:7px;padding:7px;font-size:11px">
-<input id="roomCode" value="AGALAR" maxlength="16" aria-label="Oda kodu" style="width:82px;background:#243441;color:white;border:1px solid #ffffff55;border-radius:7px;padding:7px;font-size:11px;text-transform:uppercase">
+<input id="serverUrl" value="" aria-label="Sunucu adresi" style="width:185px;min-width:110px;background:#243441;color:white;border:1px solid #ffffff55;border-radius:7px;padding:7px;font-size:11px">
+<input id="roomCode" value="AGALAR" maxlength="16" aria-label="Oda kodu" style="width:75px;background:#243441;color:white;border:1px solid #ffffff55;border-radius:7px;padding:7px;font-size:11px;text-transform:uppercase">
 <input id="playerName" value="Oyuncu" maxlength="16" aria-label="Oyuncu adı" style="width:78px;background:#243441;color:white;border:1px solid #ffffff55;border-radius:7px;padding:7px;font-size:11px">
 <select id="gameMode" style="background:#243441;color:white;border:1px solid #ffffff55;border-radius:7px;padding:7px;font-size:11px">
 <option value="survival">Survival</option>
@@ -153,6 +153,12 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 
 const root=document.getElementById('game'),statusEl=document.getElementById('status');
 
+/* RENDER SUNUCU ADRESİ DOĞRUDAN TANIMLANDI */
+const serverUrlInput=document.getElementById('serverUrl');
+if(serverUrlInput){
+ serverUrlInput.value = 'wss://blok-dunyasi-online.onrender.com';
+}
+
 /* PANEL GİZLEME SİSTEMİ MANTIĞI */
 const panelToggle=document.getElementById('panelToggle');
 function togglePanels(e){
@@ -164,14 +170,6 @@ function togglePanels(e){
 }
 panelToggle.addEventListener('pointerdown',togglePanels);
 panelToggle.addEventListener('click',togglePanels);
-
-const serverUrlInput=document.getElementById('serverUrl');
-if(serverUrlInput&&!serverUrlInput.value){
- const hosted=location.hostname&&location.hostname!=='127.0.0.1'&&location.hostname!=='localhost';
- serverUrlInput.value=hosted
- ?`${location.protocol==='https:'?'wss:':'ws:'}//${location.host}`
- :'ws://127.0.0.1:8080';
-}
 
 const scene=new THREE.Scene();
 scene.background=new THREE.Color(0x87ceeb);
@@ -723,7 +721,7 @@ renderer.domElement.addEventListener('pointermove',e=>{
 renderer.domElement.addEventListener('pointerup',e=>{if(e.pointerId===lookId)lookId=null});
 renderer.domElement.addEventListener('pointercancel',()=>lookId=null);
 
-/* ZIPLAMA DÜZELTMESİ: Sadece yerdeyken ve basıldığı an kuyruğa eklenir */
+/* ZIPLAMA DÜZELTMESİ (SADECE BİR KERE ZIPLAR) */
 let jumpQueued=false;
 document.getElementById('jump').addEventListener('pointerdown',e=>{
  e.preventDefault();
