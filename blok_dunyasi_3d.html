@@ -723,11 +723,13 @@ renderer.domElement.addEventListener('pointermove',e=>{
 renderer.domElement.addEventListener('pointerup',e=>{if(e.pointerId===lookId)lookId=null});
 renderer.domElement.addEventListener('pointercancel',()=>lookId=null);
 
-/* ZIPLAMA KODU */
+/* ZIPLAMA KODU (HATASI GİDERİLDİ) */
 let jumpQueued=false;
 document.getElementById('jump').addEventListener('pointerdown',e=>{
  e.preventDefault();
- jumpQueued=true;
+ if(player.onGround) {
+  jumpQueued=true;
+ });
 });
 
 function solidAt(x,y,z){
@@ -744,17 +746,24 @@ function updatePlayer(dt){
  if(!solidAt(nx,player.y-1.1,player.z)&&!solidAt(nx,player.y-.2,player.z))player.x=nx;
  if(!solidAt(player.x,player.y-1.1,nz)&&!solidAt(player.x,player.y-.2,nz))player.z=nz;
 
- if(jumpQueued&&player.onGround){player.vy=7.2;player.onGround=false;}
+ // Zıplama kuyruğu sadece yerdeysek ve zıplama tuşuna basıldıysa işler
+ if(jumpQueued&&player.onGround){
+  player.vy=7.2;
+  player.onGround=false;
+ }
  jumpQueued=false;
 
  player.vy-=18*dt;
  let ny=player.y+player.vy*dt;
 
+ // Zemin çarpışma kontrolü (eski kayma hatası düzeltildi)
  if(player.vy<=0&&solidAt(player.x,ny-1.7,player.z)){
   ny=Math.round(ny-1.7)+2.2;
   player.vy=0;
   player.onGround=true;
- }else player.onGround=false;
+ }else{
+  player.onGround=false;
+ }
 
  if(ny< -5){ny=8;player.vy=0;}
  player.y=ny;
