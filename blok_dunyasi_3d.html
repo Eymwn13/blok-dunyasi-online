@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="tr">
 <head>
@@ -26,22 +25,25 @@ canvas{display:block}
 #crosshair:before{width:2px;height:18px;left:8px}
 #crosshair:after{height:2px;width:18px;top:8px}
 
-/* PANEL GİZLEME */
+/* PANEL GİZLEME SİSTEMİ DÜZELTMELERİ */
 #panelToggle{
 position:fixed;left:0;top:50%;transform:translateY(-50%);
-z-index:9999;width:32px;height:58px;
+z-index:99999;width:38px;height:64px;
 border:1px solid #ffffff80;border-left:0;
-border-radius:0 10px 10px 0;
+border-radius:0 12px 12px 0;
 background:#17212dee;color:white;
 font-size:20px;font-weight:900;
-pointer-events:auto;touch-action:manipulation
+cursor:pointer;
+pointer-events:auto!important;touch-action:manipulation;
+display:flex;align-items:center;justify-content:center;
+box-shadow:2px 0 10px #0008;
 }
 #onlinePanel,#chatBox{
 transition:transform .25s ease,opacity .25s ease;
 }
 body.panels-hidden #onlinePanel,
 body.panels-hidden #chatBox{
-transform:translateX(calc(-100% - 20px));
+transform:translateX(calc(-100% - 30px));
 opacity:0;
 pointer-events:none!important;
 }
@@ -151,14 +153,17 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 
 const root=document.getElementById('game'),statusEl=document.getElementById('status');
 
-/* PANEL GİZLEME SİSTEMİ */
+/* PANEL GİZLEME SİSTEMİ MANTIĞI */
 const panelToggle=document.getElementById('panelToggle');
-panelToggle.addEventListener('click',()=>{
+function togglePanels(e){
+ if(e){ e.preventDefault(); e.stopPropagation(); }
  const hidden=document.body.classList.toggle('panels-hidden');
  panelToggle.textContent=hidden?'▶':'◀';
  panelToggle.setAttribute('aria-expanded',String(!hidden));
  panelToggle.setAttribute('aria-label',hidden?'Panelleri göster':'Panelleri gizle');
-});
+}
+panelToggle.addEventListener('pointerdown',togglePanels);
+panelToggle.addEventListener('click',togglePanels);
 
 const serverUrlInput=document.getElementById('serverUrl');
 if(serverUrlInput&&!serverUrlInput.value){
@@ -718,7 +723,7 @@ renderer.domElement.addEventListener('pointermove',e=>{
 renderer.domElement.addEventListener('pointerup',e=>{if(e.pointerId===lookId)lookId=null});
 renderer.domElement.addEventListener('pointercancel',()=>lookId=null);
 
-/* ZIPLAMA KODU - KORUNDU */
+/* ZIPLAMA KODU */
 let jumpQueued=false;
 document.getElementById('jump').addEventListener('pointerdown',e=>{
  e.preventDefault();
